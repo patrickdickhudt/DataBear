@@ -119,19 +119,11 @@ class DataLogger:
         dt = datetime.datetime.now()
         timestamp = dt.strftime('_%Y%m%d_%H%M')
         fname = datalogger['name'] + timestamp
-        #self.csvfile = open(datalogger['name']+'.csv','w',newline='')
         self.csvfile = open(fname+'.csv','w',newline='')
-        self.csvwrite = csv.DictWriter(self.csvfile,['dt','measurement','value','sensor'])
+        self.csvwrite = csv.writer(self.csvfile)
         
         # make header from that specified in yaml
-        header = {
-                    'dt': sensorsettings['header'][0],
-                    'measurement':sensorsettings['header'][1],
-                    'value': sensorsettings['header'][2],
-                    'sensor':sensorsettings['header'][3]}
-                    
-        self.csvwrite.writerow(header)
-        
+        self.csvwrite.writerow(sensorsettings['header'])
 
     def addSensor(self,sensortype,name,settings):
         '''
@@ -207,15 +199,9 @@ class DataLogger:
         storedata = processdata.calculate(process,data,storetime)
         
         #Write to CSV
-        for row in storedata:
-            datadict = {
-                    'dt': row[0],
-                    'measurement':name,
-                    'value': row[1],
-                    'sensor':sensor}
-
-            #Output row to CSV
-            self.csvwrite.writerow(datadict)
+        for row in storedata:              
+            data2write = [row[0],name,row[1],sensor]
+            self.csvwrite.writerow(data2write)
             
     def run(self):
         '''
