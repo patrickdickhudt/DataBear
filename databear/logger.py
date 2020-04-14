@@ -16,12 +16,14 @@ import databear.schedule as schedule
 import databear.process as processdata
 from databear import sensorfactory
 from databear.errors import DataLogConfigError, MeasureError
-from datetime import timedelta
+#from datetime import timedelta
+import datetime
 import yaml
 import time #For sleeping during execution
 import csv
 import sys #For command line args
 import logging
+import pdb
 
 
 
@@ -82,9 +84,8 @@ class DataLogger:
         datalogger = config['datalogger']
         loggersettings = datalogger['settings']
         sensors = config['sensors']
-        
+        sensorsettings = sensors[0]['settings']
         self.name = datalogger['name']
-
         #Set up error logging
         logging.basicConfig(
                 format=DataLogger.errorfmt,
@@ -115,9 +116,22 @@ class DataLogger:
             
 
         #Create output file
-        self.csvfile = open(datalogger['name']+'.csv','w',newline='')
+        dt = datetime.datetime.now()
+        timestamp = dt.strftime('_%Y%m%d_%H%M')
+        fname = datalogger['name'] + timestamp
+        #self.csvfile = open(datalogger['name']+'.csv','w',newline='')
+        self.csvfile = open(fname+'.csv','w',newline='')
         self.csvwrite = csv.DictWriter(self.csvfile,['dt','measurement','value','sensor'])
-        self.csvwrite.writeheader()
+        
+        # make header from that specified in yaml
+        header = {
+                    'dt': sensorsettings['header'][0],
+                    'measurement':sensorsettings['header'][1],
+                    'value': sensorsettings['header'][2],
+                    'sensor':sensorsettings['header'][3]}
+                    
+        self.csvwrite.writerow(header)
+        
 
     def addSensor(self,sensortype,name,settings):
         '''
@@ -178,11 +192,11 @@ class DataLogger:
         #Deal with missing last time on start-up
         #Set to storetime - 1 day to ensure all data is included
         if not lasttime:
-            lasttime = storetime - timedelta(1)
+            lasttime = storetime - datetime.timedelta(1)
 
         #Get datetimes associated with current storage and prior
         data = self.sensors[sensor].getdata(name,lasttime,storetime)
-
+       
         if not data:
             #No data found to be stored
             logging.warning(
@@ -191,7 +205,7 @@ class DataLogger:
         
         #Process data
         storedata = processdata.calculate(process,data,storetime)
-
+        
         #Write to CSV
         for row in storedata:
             datadict = {
