@@ -5,7 +5,7 @@ Testing Databear 1.2 on MDL using a Dyacon TPH-1
 
 #Import databear components
 # Example: from databear.sensors import dyaconTPH1,dyaconWSD2,simStream 
-from databear.sensors import dyaconWSD1, maxBotixAlt
+from databear.sensors import dyaconWSD1, maxBotixAlt, gillWindmasterPro
 from databear import logger, sensorfactory 
 
 #Import MDL functions
@@ -21,6 +21,7 @@ import yaml
 #Example: sensorfactory.factory.register_sensor('simStream', simStream.SimStream)
 sensorfactory.factory.register_sensor('dyaconWSD1', dyaconWSD1.dyaconWSD1)
 sensorfactory.factory.register_sensor('maxBotixAlt', maxBotixAlt.maxBotixAlt)
+sensorfactory.factory.register_sensor('gillWindmasterPro', gillWindmasterPro.gillWindmasterPro)
 
 #Read in path to YAML from commandline arg
 if len(sys.argv) < 2:
