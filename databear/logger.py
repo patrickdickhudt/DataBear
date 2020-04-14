@@ -109,7 +109,8 @@ class DataLogger:
                     setting['store'],
                     setting['sensor'],
                     setting['frequency'],
-                    setting['process'])
+                    setting['process'],
+                    setting['dataType'])
             except TypeError as tp:
                 raise DataLogConfigError(
                 'YAML configured wrong. Logger setting missing dash (-)')
@@ -161,15 +162,15 @@ class DataLogger:
                         m,
                         measureE.messages[m]))
         
-    def scheduleStorage(self,name,sensor,frequency,process):
+    def scheduleStorage(self,name,sensor,frequency,process,dataType):
         '''
         Schedule when storage takes place
         '''
         s = self.storeMeasurement
         #Note: Some parameters for function supplied by Job class in Schedule
-        self.logschedule.every(frequency).do(s,name,sensor,process)
+        self.logschedule.every(frequency).do(s,name,sensor,process,dataType)
 
-    def storeMeasurement(self,name,sensor,process,storetime,lasttime):
+    def storeMeasurement(self,name,sensor,process,dataType,storetime,lasttime):
         '''
         Store measurement data according to process.
         Inputs
@@ -199,8 +200,15 @@ class DataLogger:
         storedata = processdata.calculate(process,data,storetime)
         
         #Write to CSV
-        for row in storedata:              
-            data2write = [row[0],name,row[1],sensor]
+        for row in storedata: 
+        # Compose data line to write depending on specified dataType
+            if dataType == 'polled':
+                data2write = [row[0],name,row[1],sensor]
+            elif  dataType == 'stream':
+                data2write = row[:]
+            else:
+                raise (NotImplementedError, "Undefined data type. Recognized data types are stream or polled.")
+              
             self.csvwrite.writerow(data2write)
             
     def run(self):
