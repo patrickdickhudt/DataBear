@@ -9,6 +9,7 @@ Dyacon TPH-1 Sensor
 import datetime
 import minimalmodbus as mm
 from databear.errors import MeasureError, SensorConfigError
+import pdb
 
 class dyaconWSD1:
     #Inherit from "modbus sensor class"?
@@ -38,8 +39,6 @@ class dyaconWSD1:
         self.bias = 1
 
         #Define characteristics of this sensor
-        #self.sensor_type = 'polled'   PJD
-        self.sensortype = 'modbus'
         self.maxfrequency = 1  #Maximum frequency in seconds the sensor can be polled
 
         #Define measurements
@@ -49,10 +48,10 @@ class dyaconWSD1:
 
         #Setup measurement
         self.comm = mm.Instrument(self.port,self.address)
-        self.comm.serial.timeout = 0.3
+        self.comm.serial.timeout = 1
 
         #Initialize data structure
-        self.data = {'WindSpeed':[],'WindDir':[]} #Empty data dictionary
+        self.data = {self.measurements[0]['name']:[],self.measurements[1]['name']:[]} #Empty data dictionary
 
     def measure(self):
         '''
