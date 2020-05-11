@@ -115,15 +115,17 @@ class DataLogger:
                 raise DataLogConfigError(
                 'YAML configured wrong. Logger setting missing dash (-)')
             
-
         #Create output file
         dt = datetime.datetime.now()
         timestamp = dt.strftime('_%Y%m%d_%H%M')
         fname = datalogger['name'] + timestamp
         self.csvfile = open(fname+'.csv','w',newline='')
-        self.csvwrite = csv.writer(self.csvfile)
+        self.csvwrite = csv.writer(self.csvfile, quoting = csv.QUOTE_NONE)
         
-        # make header from that specified in yaml
+        # make headers from what is specified in yaml
+        # Make header first line
+        header1 = ['Name = ' + datalogger['name'], ' Sensor type = ' + sensor['sensortype'], ' Serial number = ' + sensorsettings['serialnumber']]
+        self.csvwrite.writerow(header1)
         self.csvwrite.writerow(sensorsettings['header'])
 
     def addSensor(self,sensortype,name,settings):
@@ -200,17 +202,21 @@ class DataLogger:
         storedata = processdata.calculate(process,data,storetime)
         
         #Write to CSV
-        for row in storedata: 
+         
         # Compose data line to write depending on specified dataType
-            if dataType == 'polled':
+        if dataType == 'polled':
+            for row in storedata:
                 data2write = [row[0],name,row[1],sensor]
-            elif  dataType == 'stream':
-                data2write = row[:]
-            else:
-                raise (NotImplementedError, "Undefined data type. Recognized data types are stream or polled.")
-              
-            self.csvwrite.writerow(data2write)
-            
+                self.csvwrite.writerow(data2write) 
+        elif  dataType == 'stream':  
+            for row in storedata:
+                data2write = row[1]  # just use formated data list made in instrument specific .py, time stamp with appropriate formatting was inserted so can remove other, can prob remove step where improper format time stamp appended later and this step won't be necessary
+                self.csvwrite.writerow(data2write) 
+            self.sensors[sensor].data = {name:[]}   # empty data after written so it doesn't keep appending
+        else:
+            raise (NotImplementedError, "Undefined data type. Recognized data types are stream or polled.")
+                 
+        
     def run(self):
         '''
         Run the logger
