@@ -11,6 +11,7 @@ datalogger:
       store: range   
       frequency: .1        #Sample frequency in seconds. Can be < 1
       process: dump        #Not yet implemented. Leave as None
+      dataType: stream     # instrument data output type, polled, stream
 
 
 #Define sensors
@@ -22,15 +23,10 @@ sensors:
     settings:
       serialnumber: '7360'
       measurement: .1  #Measurement frequency of the sensor
-      baud: 9600
-      #address: 1      
+      baud: 9600    
       port: SM3       #pyMDL specific - "serial module" port number (1-8)
- # - name: RMY
-  #  sensortype: streaming
-   # settings:
-    #  serialnumber: 9999
-     # measurement: 5
-      #port: SM4
+      header: ['Time yyyy-mm-dd HH:MM:SS microsecond', 'Range (mm)']
+
       
     
 
