@@ -1,0 +1,28 @@
+#An example configuration file for the MDL-700
+
+#Change key values to change settings. Also add or remove groups of key/value pairs as needed.
+
+#Define datalogger settings - Controls how measurements are stored
+#Settings key must have at least one set of storage settings
+datalogger:
+  name: GillWind1           #Logger name will be associated with output csv
+  settings:
+    - sensor: gillWindmasterPro
+      store: gillWindmasterPro   
+      frequency: .03        #Sample frequency in seconds. Can be < 1, this goes up to 32 hz (.03). Start slow.
+      process: dump        #Not yet implemented. Leave as None
+      dataType: stream     # instrument data output type, polled, stream
+
+#Define sensors
+#Must have at least one set of settings per sensor.
+#Key value pairs in measurements vary by method
+sensors: 
+  - name: gillWindmasterPro
+    sensortype: gillWindmasterPro
+    settings:
+      serialnumber: '185014'
+      measurement: .03  #Measurement frequency of the sensor
+      baud: 19200    
+      port: SM5       #pyMDL specific - "serial module" port number (1-8)
+      header: ['Time yyyy-mm-dd HH:MM:SS microsecond','Node address', 'Direction (deg)', 'Wind speed (m s-1)', 'W Vel and polarity (+upward)', 'Units', 'Speed of Sound (m s-1)', 'Sonic temp (deg C)', 'Status', 'Checksum']
+      
