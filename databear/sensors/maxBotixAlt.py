@@ -10,6 +10,7 @@ import datetime
 import serial
 import re
 from databear import ReadLine
+import pdb
 
 class maxBotixAlt:
     def __init__(self,name,settings):
@@ -40,11 +41,11 @@ class maxBotixAlt:
 
         #Set up connection
         self.comm = serial.Serial(self.port,self.baud,timeout=self.timeout)
-
+        self.comm.flushInput()  # flush input buffer so getting current data
         #Define measurements
-        self.data = {'range':[]}
-     
-     
+        self.data = {'range':[]}  # this data name should come from store in datalogger
+        self.dataRE = re.compile('\d\d\d\d')
+        
     def measure(self):
         '''
         Read in data from port and parse to measurements
@@ -52,33 +53,17 @@ class maxBotixAlt:
         
         vals = None
         while not vals:
-            dbytes = self.comm.in_waiting
-            #print(dbytes)
-            #rawdata = self.comm.read(dbytes).decode('utf-8')
-            #rawdata = self.comm.readline().decode('utf-8') 
-            ser = serial.Serial(self.port,self.baud,timeout=self.timeout)
-            #rawdata = ReadLine.readline(ser)
-            #rawdata = rl.readline()
+            dt = datetime.datetime.now()    
+            timestamp = dt.strftime('%Y-%m-%d %H:%M:%S %f')
             rawdata = self.comm.read_until(b'\r').decode('utf-8')
             
-            #print('rawdata: {}'.format(rawdata))
-            
-            #Parse raw data
-            #Pattern for decimal number
-            #(see https://docs.python.org/3/library/re.html#writing-a-tokenizer)
-            #dataRE = r'(\d+\.\d+)'
-            dataRE = re.compile('\d\d\d\d')
-            vals = re.findall(dataRE,rawdata) #Search for matches in rawdata
+            #print('rawdata: {}'.format(rawdata))            
+            vals = re.findall(self.dataRE,rawdata) #Search for matches in rawdata
         vals = vals[0]
-        dt = datetime.datetime.now()    
-        timestamp = dt.strftime('%Y-%m-%d %H:%M:%S %f')
-        #print('Measure: {}, data= {}'.format(timestamp,rawdata[:-2]))
-        #print('vals = ')
-        #print(vals)
-        x = float(vals)
+        valsOut = [timestamp,vals]
         
-        self.data['range'].append((dt,x))
-
+        self.data['range'].append((dt,valsOut))
+        
     def getdata(self,name,startdt,enddt):
             '''
             Return a list of values such that
@@ -88,8 +73,8 @@ class maxBotixAlt:
             output = []
             data = self.data[name]
             for val in data:
-                if (val[0]>=startdt) and (val[0]<enddt):
-                    output.append(val)
+                #if (val[0]>=startdt) and (val[0]<enddt):  # this results in a lot of streaming data to be lost. 
+                output.append(val)
             return output
         
     def cleardata(self,name):
